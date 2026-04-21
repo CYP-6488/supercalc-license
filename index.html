@@ -3,203 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Calculator - License Server</title>
+    <title>超级计算器Pro - 专业级计算工具</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a365d 50%, #0a1628 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .math-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ctext x='50' y='50' font-size='20' fill='white'%3E∫%3C/text%3E%3Ctext x='150' y='80' font-size='18' fill='white'%3Eπ%3C/text%3E%3Ctext x='250' y='60' font-size='22' fill='white'%3E∑%3C/text%3E%3Ctext x='350' y='100' font-size='16' fill='white'%3E√%3C/text%3E%3Ctext x='80' y='150' font-size='20' fill='white'%3EΔ%3C/text%3E%3Ctext x='200' y='180' font-size='18' fill='white'%3Eθ%3C/text%3E%3Ctext x='300' y='160' font-size='22' fill='white'%3E∞%3C/text%3E%3Ctext x='100' y='250' font-size='16' fill='white'%3Eα%3C/text%3E%3Ctext x='220' y='280' font-size='20' fill='white'%3Eβ%3C/text%3E%3Ctext x='320' y='260' font-size='18' fill='white'%3Eγ%3C/text%3E%3Ctext x='60' y='350' font-size='22' fill='white'%3Eλ%3C/text%3E%3Ctext x='180' y='360' font-size='16' fill='white'%3Eμ%3C/text%3E%3Ctext x='280' y='340' font-size='20' fill='white'%3Eσ%3C/text%3E%3C/svg%3E");
+            background-size: 400px 400px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 22, 40, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .hero {
+            position: relative;
+            z-index: 1;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            padding: 20px;
+            text-align: center;
+            padding: 100px 20px 50px;
         }
-        .container {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+
+        .version-badge {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            padding: 8px 20px;
             border-radius: 20px;
-            padding: 40px;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 span {
+            color: #667eea;
+            -webkit-text-fill-color: #667eea;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
             max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            line-height: 1.8;
         }
-        h1 { font-size: 2.5rem; margin-bottom: 10px; text-align: center; }
-        .subtitle { font-size: 1.2rem; text-align: center; opacity: 0.9; margin-bottom: 30px; }
-        h2 { font-size: 1.3rem; margin-bottom: 15px; }
-        h3 { font-size: 1.1rem; margin-bottom: 10px; }
-        ol { line-height: 1.8; padding-left: 20px; margin-bottom: 20px; }
-        .pricing {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 60px;
         }
-        .price-card {
-            background: rgba(255,255,255,0.2);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .price-card .price { font-size: 2rem; font-weight: bold; }
-        .price-card .desc { opacity: 0.8; font-size: 0.9rem; }
-        .contact {
-            background: rgba(255,255,255,0.15);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .contact p { margin: 5px 0; }
-        .api-section {
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        .api-section code {
-            background: rgba(0,0,0,0.3);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        .verify-form {
-            margin-top: 15px;
-        }
-        .verify-form input {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        .verify-form button {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.3);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 5px;
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
             color: white;
+            padding: 12px 30px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
             font-size: 1rem;
             cursor: pointer;
-            margin-top: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
         }
-        .verify-form button:hover {
-            background: rgba(255,255,255,0.4);
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
         }
-        .result {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 5px;
-            display: none;
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
         }
-        .result.success { background: rgba(0,255,0,0.2); display: block; }
-        .result.error { background: rgba(255,0,0,0.2); display: block; }
-        footer { margin-top: 30px; opacity: 0.7; font-size: 0.9rem; }
+
+        .feature-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .section {
+            position: relative;
+            z-index: 1;
+            padding: 100px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .pricing-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .price span {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .pricing-card li {
+            padding: 8px 0;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .pricing-card li::before {
+            content: '✓ ';
+            color: #667eea;
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-content p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+        }
+
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 15px 20px; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .features { grid-template-columns: 1fr; }
+            .pricing-cards { grid-template-columns: 1fr; }
+            .section { padding: 60px 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Super Calculator</h1>
-        <p class="subtitle">License Activation Server</p>
-        
-        <div>
-            <h2>How to Activate</h2>
-            <ol>
-                <li>Open Super Calculator on your computer</li>
-                <li>Copy your machine code from the startup dialog</li>
-                <li>Contact us to purchase a license</li>
-                <li>Enter the license key in the software</li>
-            </ol>
-        </div>
+    <div class="math-bg"></div>
 
-        <div>
-            <h2>Pricing</h2>
-            <div class="pricing">
-                <div class="price-card">
-                    <div>Single Module</div>
-                    <div class="price">¥9.9</div>
-                    <div class="desc">One-time purchase</div>
-                </div>
-                <div class="price-card">
-                    <div>All Modules</div>
-                    <div class="price">¥49.9</div>
-                    <div class="desc">One-time purchase</div>
-                </div>
+    <nav>
+        <div class="logo">
+            <div class="logo-icon">🧮</div>
+            超级计算器
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">功能</a></li>
+            <li><a href="#pricing">定价</a></li>
+            <li><a href="#about">关于</a></li>
+        </ul>
+        <a href="https://github.com/CYP-6488/supercalc-license/releases" class="btn-download">立即下载</a>
+    </nav>
+
+    <section class="hero">
+        <div class="version-badge">v2.0 全新发布</div>
+        <h1>超级计算器<span>Pro</span></h1>
+        <p>专业级计算工具，让复杂运算变得简单高效。支持科学计算、单位换算、财务分析等多种功能。</p>
+        <div class="hero-buttons">
+            <a href="https://github.com/CYP-6488/supercalc-license/releases" class="btn-download">⬇ 立即下载</a>
+            <a href="#features" class="btn-secondary">了解更多</a>
+        </div>
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔢</div>
+                <h3>科学计算</h3>
+                <p>支持复杂公式运算</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>极速响应</h3>
+                <p>毫秒级计算速度</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>数据安全</h3>
+                <p>本地加密存储</p>
             </div>
         </div>
+    </section>
 
-        <div class="contact">
-            <h3>Contact Us</h3>
-            <p>Email: support@supercalc.com</p>
-            <p style="font-size: 0.9rem; opacity: 0.8;">
-                Send your machine code and we will reply with a license key
-            </p>
-        </div>
-
-        <div class="api-section">
-            <h3>API Verification</h3>
-            <p style="font-size: 0.9rem; margin-bottom: 10px;">
-                Endpoint: <code>/api/verify</code>
-            </p>
-            <div class="verify-form">
-                <input type="text" id="machineCode" placeholder="Enter machine code">
-                <input type="text" id="licenseKey" placeholder="Enter license key">
-                <button onclick="verifyLicense()">Verify License</button>
-                <div id="result" class="result"></div>
+    <section id="features" class="section">
+        <h2>功能模块</h2>
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3>科学计算器</h3>
+                <p>三角函数、对数、指数、阶乘等高级运算</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>单位换算</h3>
+                <p>长度、重量、温度、货币等多种单位转换</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>财务计算</h3>
+                <p>贷款、投资、复利、折旧等财务分析</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>会计计算</h3>
+                <p>税费、利润、成本等会计相关计算</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>公式计算</h3>
+                <p>物理、化学、工程等专业公式</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔬</div>
+                <h3>方程求解</h3>
+                <p>一元二次方程、方程组求解</p>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section id="pricing" class="section">
+        <h2>授权方案</h2>
+        <div class="pricing-cards">
+            <div class="pricing-card">
+                <h3>单模块授权</h3>
+                <div class="price">¥9.9 <span>/ 永久</span></div>
+                <ul>
+                    <li>科学计算器（免费）</li>
+                    <li>任选一个付费模块</li>
+                    <li>永久使用</li>
+                    <li>免费更新</li>
+                </ul>
+                <a href="https://cyp-6488.github.io/supercalc-license/" class="btn-secondary" style="display:inline-block;margin-top:20px;">购买授权</a>
+            </div>
+            <div class="pricing-card featured">
+                <h3>全模块授权</h3>
+                <div class="price">¥49.9 <span>/ 永久</span></div>
+                <ul>
+                    <li>科学计算器（免费）</li>
+                    <li>所有付费模块</li>
+                    <li>永久使用</li>
+                    <li>优先技术支持</li>
+                </ul>
+                <a href="https://cyp-6488.github.io/supercalc-license/" class="btn-download" style="display:inline-block;margin-top:20px;">购买授权</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="section">
+        <h2>关于</h2>
+        <div class="about-content">
+            <p>超级计算器Pro 是一款功能强大的专业计算工具，专为工程师、学生和专业人士设计。</p>
+            <p>科学计算器功能完全免费，其他高级模块提供试用，满意后可购买永久授权。</p>
+            <p>所有计算均在本地完成，无需联网，保护您的数据安全。</p>
+        </div>
+    </section>
 
     <footer>
-        © 2024 Super Calculator. All rights reserved.
+        <p>© 2024 超级计算器Pro. 保留所有权利.</p>
+        <p style="margin-top:10px;">
+            <a href="https://cyp-6488.github.io/supercalc-license/">授权说明</a> | 
+            <a href="https://github.com/CYP-6488/supercalc-license">GitHub</a>
+        </p>
     </footer>
-
-    <script>
-        function verifyLicense() {
-            const machineCode = document.getElementById('machineCode').value.trim();
-            const licenseKey = document.getElementById('licenseKey').value.trim();
-            const resultDiv = document.getElementById('result');
-            
-            if (!machineCode || !licenseKey) {
-                resultDiv.className = 'result error';
-                resultDiv.textContent = 'Please enter both machine code and license key';
-                return;
-            }
-            
-            const parts = licenseKey.split('-');
-            if (parts.length !== 4) {
-                resultDiv.className = 'result error';
-                resultDiv.textContent = 'Invalid license key format';
-                return;
-            }
-            
-            const keyMachineCode = parts[0];
-            const licenseType = parseInt(parts[1]);
-            const modules = parseInt(parts[2], 16);
-            
-            if (keyMachineCode !== machineCode) {
-                resultDiv.className = 'result error';
-                resultDiv.textContent = 'License key does not match this machine';
-                return;
-            }
-            
-            const moduleNames = ['Unit Converter', 'Finance', 'Accounting', 'Formula', 'Equation', 'Advanced Math'];
-            let authorizedModules = [];
-            for (let i = 1; i <= 6; i++) {
-                if (modules & (1 << i)) {
-                    authorizedModules.push(moduleNames[i - 1]);
-                }
-            }
-            
-            resultDiv.className = 'result success';
-            resultDiv.innerHTML = '<strong>License is valid!</strong><br>' +
-                'Type: ' + (licenseType === 3 ? 'All Modules' : 'Single Module') + '<br>' +
-                'Modules: ' + (licenseType === 3 ? 'All' : authorizedModules.join(', ') || 'None');
-        }
-    </script>
 </body>
 </html>
