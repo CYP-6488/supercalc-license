@@ -407,6 +407,71 @@
             color: #667eea;
         }
 
+        .modal .key-display {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 1rem;
+            color: #667eea;
+            word-break: break-all;
+            display: none;
+        }
+
+        .modal .key-display.active {
+            display: block;
+        }
+
+        .modal .get-key-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .modal .get-key-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal .get-key-btn:disabled {
+            background: rgba(255,255,255,0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .modal .copy-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 20px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            color: #667eea;
+            background: transparent;
+        }
+
+        .modal .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .modal .key-count {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 10px;
+        }
+
         @media (max-width: 768px) {
             nav { padding: 15px 20px; }
             .nav-links { display: none; }
@@ -531,28 +596,156 @@
             <h3 id="modalTitle">单模块授权</h3>
             <div class="modal-price" id="modalPrice">¥9.9</div>
             <img id="modalQrcode" src="qrcode_9.9.png" alt="付款码">
-            <p class="tip">微信扫码支付，付款后自动解锁<br>如有疑问请联系 <strong>121795231@163.com</strong></p>
+            <p class="tip">微信扫码支付，付款后点击下方按钮获取激活码<br>如有疑问请联系 <strong>121795231@163.com</strong></p>
+            <button class="get-key-btn" id="getKeyBtn" onclick="getActivationKey()">获取激活码</button>
+            <div class="key-display" id="keyDisplay"></div>
+            <button class="copy-btn" id="copyBtn" style="display:none;" onclick="copyKey()">复制激活码</button>
+            <p class="key-count" id="keyCount"></p>
         </div>
     </div>
 
     <script>
+        const API_URL = '/api/get-key';
+        let currentKeyType = 'single';
+        let currentKey = '';
+        let remainingKeys = { single: 0, full: 0 };
+
+        async function fetchKeyCount(type) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type, countOnly: true })
+                });
+                const data = await response.json();
+                return data.remaining || 0;
+            } catch (error) {
+                console.error('获取剩余数量失败:', error);
+                return 0;
+            }
+        }
+
         function showModal(type) {
             const overlay = document.getElementById('modalOverlay');
             const title = document.getElementById('modalTitle');
             const price = document.getElementById('modalPrice');
             const qrcode = document.getElementById('modalQrcode');
+            const keyDisplay = document.getElementById('keyDisplay');
+            const copyBtn = document.getElementById('copyBtn');
+            const getKeyBtn = document.getElementById('getKeyBtn');
+            const keyCount = document.getElementById('keyCount');
+            
+            currentKeyType = type;
+            currentKey = '';
+            keyDisplay.classList.remove('active');
+            keyDisplay.textContent = '';
+            copyBtn.style.display = 'none';
+            getKeyBtn.style.display = 'inline-block';
+            getKeyBtn.disabled = false;
+            getKeyBtn.textContent = '获取激活码';
             
             if (type === 'single') {
                 title.textContent = '单模块授权';
                 price.textContent = '¥9.9';
                 qrcode.src = 'qrcode_9.9.png';
+                keyCount.textContent = `剩余可用激活码: 加载中...`;
             } else {
                 title.textContent = '全模块授权';
                 price.textContent = '¥49.9';
                 qrcode.src = 'qrcode_49.9.png';
+                keyCount.textContent = `剩余可用激活码: 加载中...`;
             }
             
             overlay.classList.add('active');
+            
+            // 异步加载剩余数量
+            fetchKeyCount(type).then(count => {
+                remainingKeys[type] = count;
+                if (count === 0) {
+                    getKeyBtn.disabled = true;
+                    getKeyBtn.textContent = '已售罄';
+                }
+                keyCount.textContent = `剩余可用激活码: ${count}`;
+            });
+        }
+
+        async function getActivationKey() {
+            const getKeyBtn = document.getElementById('getKeyBtn');
+            const keyDisplay = document.getElementById('keyDisplay');
+            const copyBtn = document.getElementById('copyBtn');
+            const keyCount = document.getElementById('keyCount');
+            
+            // 禁用按钮防止重复点击
+            getKeyBtn.disabled = true;
+            getKeyBtn.textContent = '获取中...';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: currentKeyType })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentKey = data.key;
+                    remainingKeys[currentKeyType] = data.remaining;
+                    
+                    keyDisplay.textContent = currentKey;
+                    keyDisplay.classList.add('active');
+                    copyBtn.style.display = 'inline-block';
+                    getKeyBtn.style.display = 'none';
+                    keyCount.textContent = `剩余可用激活码: ${data.remaining}`;
+                } else {
+                    alert(data.message || '获取失败，请联系开发者');
+                    getKeyBtn.disabled = false;
+                    getKeyBtn.textContent = '获取激活码';
+                }
+            } catch (error) {
+                console.error('获取激活码失败:', error);
+                alert('网络错误，请稍后重试');
+                getKeyBtn.disabled = false;
+                getKeyBtn.textContent = '获取激活码';
+            }
+        }
+
+        function copyKey() {
+            if (!currentKey) return;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentKey).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    copyBtn.textContent = '已复制!';
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制激活码';
+                    }, 2000);
+                }).catch(() => {
+                    fallbackCopy(currentKey);
+                });
+            } else {
+                fallbackCopy(currentKey);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.textContent = '已复制!';
+                setTimeout(() => {
+                    copyBtn.textContent = '复制激活码';
+                }, 2000);
+            } catch (err) {
+                alert('复制失败，请手动复制');
+            }
+            document.body.removeChild(textarea);
         }
 
         function closeModal(event) {

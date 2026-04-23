@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/api/get-key", "destination": "/api/get-key.js" },
+    { "source": "/api/admin", "destination": "/api/admin.js" },
     { "source": "/api/verify", "destination": "/api/verify.js" }
   ],
   "headers": [
@@ -16,5 +18,8 @@
         }
       ]
     }
-  ]
+  ],
+  "github": {
+    "silent": true
+  }
 }

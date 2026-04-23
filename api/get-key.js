@@ -1,0 +1,134 @@
+const { kv } = require('@vercel/kv');
+
+// 授权码初始数据(首次部署时使用)
+const INITIAL_KEYS = {
+  single: [
+    "O9Y7D-I4I9X-X2V8M-G3N3V",
+    "T4W6C-Z2K8I-T2D3C-Y1S1H",
+    "P9Q6D-C0E3Q-C7G9Q-H5R4V",
+    "N6H4X-F4B8P-B1O1L-J3I8T",
+    "J0Q1L-J9D9V-J5P9C-O4V6T",
+    "U6Y6T-V5G9B-E3T5P-J3X2V",
+    "K0S5L-O7T5Z-S2E0T-O5K6G",
+    "B7I9Y-M6C3M-V2X6L-L7G3M",
+    "D9K7P-Z8L0C-G5E3K-M8F1L",
+    "P2S3M-T1N9S-R5T3W-K1M2K",
+    "B2Q6R-R4O2E-D4X9G-V8M1M",
+    "W2P9R-F3A9X-U7N7Q-T9J4R",
+    "S6D5T-N7G3I-J7Q8C-F3J4I",
+    "N6G0G-N6G1I-L5V1M-L4I9K",
+    "D4L3J-P7G0H-C2J8H-I8F1A",
+    "X2Q8G-A0F8R-X9L8I-E0Z5C",
+    "E3R3J-K3J4N-J2E5Y-G4Y1P",
+    "F5D1H-Q2T0X-J4H6H-P6G8A",
+    "Y9X5Q-Y9I3F-Z3Q9P-Q9W8H",
+    "A9G0S-I4Y4Q-G8A4Z-L3E6Y",
+    "N0B2B-C2G9I-L4B8L-M6E7Q",
+    "E5K5F-Z0P4X-N7J7Y-F2H1J",
+    "Q6H0Z-W3K6L-H5N5R-U9D7G",
+    "O6M8G-I4M0O-O1Q6C-K5L7J"
+  ],
+  full: [
+    "R7Z2Y-X8F5E-A1Y8H-T9O3A",
+    "B9V7K-S3L2B-P6P1Y-I9T8R",
+    "E8E5P-T1J5E-V4D7G-N7X2Y",
+    "C8X0H-P5C3U-Q7M0V-Z9H5E",
+    "Z7S7R-Q3Z3I-H6Z1Z-P0U2H",
+    "Y5X8Y-O0S0F-U2L6X-T7G8G",
+    "U8D4H-R0C2L-I1I2X-E9Q8D",
+    "U2G3C-M1W0W-E2F4N-K1S6W",
+    "E2G4M-C5A4V-O8W6I-K5O8R",
+    "D5M0M-Z5N8N-Q9S0H-Y5A7L",
+    "H8D0B-Z1X6G-P6T3O-Z2G8L",
+    "Q3Z4S-E8I8E-G3M4P-W5T7W",
+    "P9Z5K-O7F8Q-K1W4H-G5G1Y",
+    "M7X7X-I6Q5B-M5B6G-R3Z4D",
+    "O2C8G-N8Q5Y-K5H9G-T3J0U",
+    "Z7L9B-Z5O4S-H8X3Y-Z1A9D",
+    "H1M2O-J0S5R-X0A9B-O5Y3W",
+    "Z7Q7M-T1H1N-J7Q5I-G5T5C",
+    "B8V6O-Y1D7P-J4Y2Z-T7I8Y",
+    "G5W9D-Y7I3J-Y2A4A-Z6K1H",
+    "Z6P6G-P6H8W-W5Q2C-L7B6K",
+    "Y2G1D-O4D5G-G7N8T-R3D3N",
+    "Q6G2C-S2N8Y-N6A1O-V3U5G",
+    "E5F0M-B3V7P-P7A7E-R3H0V",
+    "M9F0W-V9Z1V-A1K9G-Y9H4H"
+  ]
+};
+
+// 初始化数据库(如果为空)
+async function initDatabase() {
+  const singleCount = await kv.llen('keys:single');
+  const fullCount = await kv.llen('keys:full');
+  
+  if (singleCount === 0) {
+    await kv.rpush('keys:single', ...INITIAL_KEYS.single);
+  }
+  
+  if (fullCount === 0) {
+    await kv.rpush('keys:full', ...INITIAL_KEYS.full);
+  }
+}
+
+module.exports = async (req, res) => {
+  // 只允许POST请求
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      success: false, 
+      message: '只允许POST请求' 
+    });
+  }
+
+  const { type, countOnly } = req.body;
+
+  // 验证类型
+  if (type !== 'single' && type !== 'full') {
+    return res.status(400).json({ 
+      success: false, 
+      message: '类型必须是single或full' 
+    });
+  }
+
+  // 初始化数据库
+  await initDatabase();
+
+  const key = `keys:${type}`;
+
+  // 获取剩余数量
+  const remaining = await kv.llen(key);
+
+  // 如果只是查询数量
+  if (countOnly) {
+    return res.status(200).json({ 
+      success: true, 
+      remaining: remaining
+    });
+  }
+
+  // 检查是否有可用授权码
+  if (remaining === 0) {
+    return res.status(200).json({ 
+      success: false, 
+      message: '授权码已售罄',
+      remaining: 0
+    });
+  }
+
+  // 随机选择一个授权码(使用Redis的随机索引)
+  const randomIndex = Math.floor(Math.random() * remaining);
+  const selectedKey = await kv.lindex(key, randomIndex);
+
+  // 从列表中删除已使用的授权码
+  await kv.lrem(key, 1, selectedKey);
+
+  // 获取新的剩余数量
+  const newRemaining = await kv.llen(key);
+
+  // 返回授权码
+  return res.status(200).json({ 
+    success: true, 
+    key: selectedKey,
+    remaining: newRemaining
+  });
+}
