@@ -605,23 +605,72 @@
     </div>
 
     <script>
-        const API_URL = '/api/get-key';
+        const SUPABASE_URL = 'https://usdsrcuoljtpwuuzawbz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_9gCKQho-tZTAn-su2Fjc-Q_UZg7M9Qw';
         let currentKeyType = 'single';
         let currentKey = '';
         let remainingKeys = { single: 0, full: 0 };
 
         async function fetchKeyCount(type) {
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: type, countOnly: true })
+                const keyType = type === 'single' ? '2' : '3';
+                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=count`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
                 });
-                const data = await response.json();
-                return data.remaining || 0;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.length || 0;
+                }
+                return 0;
             } catch (error) {
                 console.error('获取剩余数量失败:', error);
                 return 0;
+            }
+        }
+
+        async function getActivationKeyFromSupabase(type) {
+            try {
+                const keyType = type === 'single' ? '2' : '3';
+                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=key,type,module&limit=1`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        const key = data[0].key;
+                        
+                        // 标记为已使用
+                        const updateUrl = `${SUPABASE_URL}/rest/v1/activation_keys?key=eq.${key}`;
+                        await fetch(updateUrl, {
+                            method: 'PATCH',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify({ used: true, used_at: 'now()' })
+                        });
+                        
+                        return key;
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('获取激活码失败:', error);
+                return null;
             }
         }
 
@@ -680,25 +729,22 @@
             getKeyBtn.textContent = '获取中...';
             
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: currentKeyType })
-                });
+                const key = await getActivationKeyFromSupabase(currentKeyType);
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentKey = data.key;
-                    remainingKeys[currentKeyType] = data.remaining;
+                if (key) {
+                    currentKey = key;
+                    
+                    // 更新剩余数量
+                    const count = await fetchKeyCount(currentKeyType);
+                    remainingKeys[currentKeyType] = count;
                     
                     keyDisplay.textContent = currentKey;
                     keyDisplay.classList.add('active');
                     copyBtn.style.display = 'inline-block';
                     getKeyBtn.style.display = 'none';
-                    keyCount.textContent = `剩余可用激活码: ${data.remaining}`;
+                    keyCount.textContent = `剩余可用激活码: ${count}`;
                 } else {
-                    alert(data.message || '获取失败，请联系开发者');
+                    alert('激活码已售罄，请联系开发者');
                     getKeyBtn.disabled = false;
                     getKeyBtn.textContent = '获取激活码';
                 }
