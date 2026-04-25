@@ -614,7 +614,7 @@
         async function fetchKeyCount(type) {
             try {
                 const keyType = type === 'single' ? '2' : '3';
-                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=count`;
+                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=*`;
                 
                 const response = await fetch(url, {
                     headers: {
@@ -625,8 +625,10 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('查询结果:', data);
                     return data.length || 0;
                 }
+                console.error('查询失败:', response.status, await response.text());
                 return 0;
             } catch (error) {
                 console.error('获取剩余数量失败:', error);
@@ -637,7 +639,7 @@
         async function getActivationKeyFromSupabase(type) {
             try {
                 const keyType = type === 'single' ? '2' : '3';
-                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=key,type,module&limit=1`;
+                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=*&limit=1`;
                 
                 const response = await fetch(url, {
                     headers: {
@@ -648,11 +650,12 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('获取激活码:', data);
                     if (data && data.length > 0) {
                         const key = data[0].key;
                         
                         // 标记为已使用
-                        const updateUrl = `${SUPABASE_URL}/rest/v1/activation_keys?key=eq.${key}`;
+                        const updateUrl = `${SUPABASE_URL}/rest/v1/activation_keys?key=eq.${encodeURIComponent(key)}`;
                         await fetch(updateUrl, {
                             method: 'PATCH',
                             headers: {
@@ -661,12 +664,13 @@
                                 'Content-Type': 'application/json',
                                 'Prefer': 'return=minimal'
                             },
-                            body: JSON.stringify({ used: true, used_at: 'now()' })
+                            body: JSON.stringify({ used: true, used_at: new Date().toISOString() })
                         });
                         
                         return key;
                     }
                 }
+                console.error('获取激活码失败:', response.status, await response.text());
                 return null;
             } catch (error) {
                 console.error('获取激活码失败:', error);
