@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Supabase测试</title>
+</head>
+<body>
+    <h1>Supabase数据库测试</h1>
+    <button onclick="testQuery()">测试查询</button>
+    <pre id="result"></pre>
+
+    <script>
+        const SUPABASE_URL = 'https://usdsrcuoljtpwuuzawbz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_9gCKQho-tZTAn-su2Fjc-Q_UZg7M9Qw';
+
+        async function testQuery() {
+            const result = document.getElementById('result');
+            result.textContent = '开始测试...\n';
+
+            try {
+                // 测试1: 简单请求
+                result.textContent += '\n[测试1] 测试简单请求...\n';
+                const testUrl = `${SUPABASE_URL}/rest/v1/`;
+                const testResponse = await fetch(testUrl, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY
+                    }
+                });
+                result.textContent += `状态码: ${testResponse.status}\n`;
+                result.textContent += `响应: ${await testResponse.text()}\n`;
+
+                // 测试2: 查询所有数据
+                result.textContent += '\n[测试2] 查询activation_keys表...\n';
+                const url = `${SUPABASE_URL}/rest/v1/activation_keys?select=*&limit=5`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                result.textContent += `状态码: ${response.status}\n`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.textContent += `数据条数: ${data.length}\n\n`;
+                    result.textContent += JSON.stringify(data, null, 2);
+                } else {
+                    const error = await response.text();
+                    result.textContent += `错误: ${error}`;
+                }
+            } catch (error) {
+                result.textContent += `\n错误: ${error.message}\n`;
+                result.textContent += `错误类型: ${error.name}\n`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -605,72 +605,41 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://usdsrcuoljtpwuuzawbz.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_9gCKQho-tZTAn-su2Fjc-Q_UZg7M9Qw';
+        const API_URL = '/api/get-key';
         let currentKeyType = 'single';
         let currentKey = '';
         let remainingKeys = { single: 0, full: 0 };
 
         async function fetchKeyCount(type) {
             try {
-                const keyType = type === 'single' ? '2' : '3';
-                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=*`;
-                
-                const response = await fetch(url, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type, countOnly: true })
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('查询结果:', data);
-                    return data.length || 0;
-                }
-                console.error('查询失败:', response.status, await response.text());
-                return 0;
+                const data = await response.json();
+                console.log('查询结果:', data);
+                return data.remaining || 0;
             } catch (error) {
                 console.error('获取剩余数量失败:', error);
                 return 0;
             }
         }
 
-        async function getActivationKeyFromSupabase(type) {
+        async function getActivationKeyFromAPI(type) {
             try {
-                const keyType = type === 'single' ? '2' : '3';
-                const url = `${SUPABASE_URL}/rest/v1/activation_keys?type=eq.${keyType}&used=eq.false&select=*&limit=1`;
-                
-                const response = await fetch(url, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type })
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('获取激活码:', data);
-                    if (data && data.length > 0) {
-                        const key = data[0].key;
-                        
-                        // 标记为已使用
-                        const updateUrl = `${SUPABASE_URL}/rest/v1/activation_keys?key=eq.${encodeURIComponent(key)}`;
-                        await fetch(updateUrl, {
-                            method: 'PATCH',
-                            headers: {
-                                'apikey': SUPABASE_KEY,
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Content-Type': 'application/json',
-                                'Prefer': 'return=minimal'
-                            },
-                            body: JSON.stringify({ used: true, used_at: new Date().toISOString() })
-                        });
-                        
-                        return key;
-                    }
+                const data = await response.json();
+                console.log('获取激活码:', data);
+                
+                if (data.success) {
+                    return data.key;
                 }
-                console.error('获取激活码失败:', response.status, await response.text());
                 return null;
             } catch (error) {
                 console.error('获取激活码失败:', error);
@@ -733,7 +702,7 @@
             getKeyBtn.textContent = '获取中...';
             
             try {
-                const key = await getActivationKeyFromSupabase(currentKeyType);
+                const key = await getActivationKeyFromAPI(currentKeyType);
                 
                 if (key) {
                     currentKey = key;
